@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 
     <style>
         /* ==================== SISTEMA DE TEMAS ==================== */
@@ -118,6 +119,34 @@
         .btn-outline:hover { background: var(--glass-bg); border-color: var(--text-primary); }
         .btn-danger { background: var(--error); color: white; }
         .btn-danger:hover { opacity: 0.9; transform: translateY(-2px); }
+
+        .status-badge {
+            padding: 4px 8px;
+            border-radius: 6px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .status-badge.success { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .status-badge.info { background: rgba(59, 130, 246, 0.1); color: var(--info); }
+        .status-badge.warning { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .status-badge.error { background: rgba(239, 68, 68, 0.1); color: var(--error); }
+
+        .calendar-day:hover {
+            transform: translateY(-4px);
+            background: var(--bg-tertiary);
+            border-color: var(--border-medium);
+            box-shadow: 0 10px 20px var(--shadow-color);
+        }
+
+        .calendar-layout {
+            animation: slideUp 0.5s ease-out;
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
 
         .input-group { margin-bottom: clamp(0.75rem, 2vw, 1.25rem); position: relative; text-align: left; }
         .input-group label { display: block; margin-bottom: 0.5rem; font-size: clamp(0.7rem, 1.5vw, 0.85rem); color: var(--text-secondary); font-weight: 500; }
@@ -350,7 +379,7 @@
             left: 0;
             right: 0;
             height: 3px;
-            background: linear-gradient(90deg, var(--chart-color-1), var(--chart-color-2));
+            background: var(--text-primary);
         }
         .stat-card h3 { 
             font-size: clamp(0.65rem, 1.2vw, 0.85rem); 
@@ -391,6 +420,7 @@
             display: grid; 
             grid-template-columns: 1fr; 
             height: calc(100vh - 180px); 
+            min-height: 500px;
             gap: 1px; 
             background: var(--border-light); 
             border-radius: var(--radius-lg); 
@@ -427,7 +457,14 @@
         .chat-item:hover, .chat-item.active { background: var(--glass-bg); color: var(--text-primary); }
         .chat-item i { font-size: clamp(1rem, 2vw, 1.2rem); }
         
-        .chat-main { background: var(--bg-primary); display: flex; flex-direction: column; position: relative; }
+        .chat-main { 
+            background: var(--bg-primary); 
+            display: flex; 
+            flex-direction: column; 
+            position: relative; 
+            height: 100%;
+            overflow: hidden;
+        }
         .chat-header { 
             padding: clamp(0.6rem, 1.5vw, 1rem) clamp(0.75rem, 1.5vw, 1.5rem); 
             border-bottom: 1px solid var(--border-light); 
@@ -447,6 +484,23 @@
             display: flex; 
             flex-direction: column; 
             gap: clamp(0.6rem, 1.2vw, 1rem); 
+            scroll-behavior: smooth;
+            height: 100%;
+        }
+
+        /* Estilização da Barra de Rolagem */
+        .chat-messages::-webkit-scrollbar {
+            width: 6px;
+        }
+        .chat-messages::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .chat-messages::-webkit-scrollbar-thumb {
+            background: var(--border-medium);
+            border-radius: 10px;
+        }
+        .chat-messages::-webkit-scrollbar-thumb:hover {
+            background: var(--text-tertiary);
         }
         .message { 
             max-width: 85%; 
@@ -459,9 +513,21 @@
         .message.bot { align-self: flex-start; background: var(--bg-secondary); border: 1px solid var(--border-light); border-bottom-left-radius: 2px; }
         .message-info { font-size: clamp(0.6rem, 1.2vw, 0.7rem); opacity: 0.7; margin-top: 0.5rem; display: block; }
         
+        /* Estilos Markdown */
+        .message-content p { margin-bottom: 0.75rem; }
+        .message-content p:last-child { margin-bottom: 0; }
+        .message-content ul, .message-content ol { margin-bottom: 0.75rem; padding-left: 1.5rem; }
+        .message-content li { margin-bottom: 0.25rem; }
+        .message-content strong { font-weight: 700; color: inherit; }
+        .message-content h1, .message-content h2, .message-content h3 { margin: 1rem 0 0.5rem 0; font-size: 1.1em; }
+        .message-content code { background: rgba(0,0,0,0.2); padding: 2px 4px; border-radius: 4px; font-family: monospace; }
+        .message-content pre { background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 8px; overflow-x: auto; margin: 0.5rem 0; }
+        
         .chat-input-area { 
             padding: clamp(0.75rem, 1.5vw, 1.5rem); 
             border-top: 1px solid var(--border-light); 
+            background: var(--bg-primary);
+            flex-shrink: 0;
         }
         .chat-input-wrapper { 
             display: flex; 
@@ -949,6 +1015,196 @@
             .main-content { margin-left: 0; }
             .glass { box-shadow: none; border: 1px solid #ddd; }
         }
+    
+        /* ==================== HAMBURGER MENU ==================== */
+        .hamburger-menu {
+            display: none;
+            flex-direction: column;
+            justify-content: space-around;
+            width: 30px;
+            height: 25px;
+            background: transparent;
+            border: none;
+            cursor: pointer;
+            padding: 0;
+            z-index: 1001;
+        }
+
+        .hamburger-menu span {
+            width: 30px;
+            height: 3px;
+            background: var(--text-primary);
+            border-radius: 10px;
+            transition: all 0.3s linear;
+            position: relative;
+            transform-origin: 1px;
+        }
+
+        .hamburger-menu.open span:first-child { transform: rotate(45deg); }
+        .hamburger-menu.open span:nth-child(2) { opacity: 0; }
+        .hamburger-menu.open span:nth-child(3) { transform: rotate(-45deg); }
+
+        .sidebar-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 99;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .sidebar-overlay.active {
+            display: block;
+            opacity: 1;
+        }
+
+        @media (max-width: 1024px) {
+            .hamburger-menu {
+                display: flex;
+            }
+
+            .sidebar {
+                position: fixed;
+                left: -100%;
+                top: 0;
+                width: var(--sidebar-width);
+                height: 100vh;
+                z-index: 1000;
+                transition: left 0.3s ease;
+                background: var(--bg-secondary);
+                flex-direction: column !important;
+                border-right: 1px solid var(--border-light);
+            }
+
+            .sidebar.open {
+                left: 0;
+            }
+
+            .sidebar-header {
+                width: 100% !important;
+                justify-content: space-between !important;
+                padding: 1.5rem !important;
+            }
+
+            .sidebar-nav {
+                flex-direction: column !important;
+                overflow-y: auto !important;
+                overflow-x: hidden !important;
+                padding: 1rem 0 !important;
+            }
+
+            .nav-link {
+                width: 100%;
+                padding: 1rem 1.5rem !important;
+                border-left: 3px solid transparent !important;
+                border-bottom: none !important;
+            }
+
+            .nav-link.active {
+                border-left-color: var(--text-primary) !important;
+                background: var(--glass-bg);
+            }
+
+            .main-content {
+                margin-left: 0 !important;
+                padding-top: 5rem !important;
+            }
+
+            .mobile-header {
+                display: flex;
+                position: fixed;
+                top: 0;
+                left: 0;
+                right: 0;
+                height: 60px;
+                background: var(--bg-secondary);
+                border-bottom: 1px solid var(--border-light);
+                align-items: center;
+                padding: 0 1.5rem;
+                z-index: 98;
+                justify-content: space-between;
+            }
+            
+            .mobile-header h2 {
+                font-size: 1.2rem;
+                font-weight: 800;
+            }
+        }
+    
+    
+        
+        
+        /* ==================== FIXED TOOLS SECTION ==================== */
+        .tools-layout {
+            display: flex;
+            gap: 2rem;
+            min-height: 500px;
+        }
+
+        .tools-nav {
+            width: 250px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            flex-shrink: 0;
+        }
+
+        .tools-nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-md);
+            color: var(--text-secondary);
+            cursor: pointer;
+            transition: all 0.2s;
+            text-align: left;
+        }
+
+        .tools-nav-btn:hover, .tools-nav-btn.active {
+            background: var(--text-primary);
+            color: var(--bg-primary);
+            border-color: var(--text-primary);
+        }
+
+        .tools-content {
+            flex: 1;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-light);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+        }
+
+        .tool-section { display: none; }
+        .tool-section.active { display: block !important; }
+
+        @media (max-width: 1024px) {
+            .tools-layout { flex-direction: column; gap: 1rem; }
+            .tools-nav { 
+                width: 100%; 
+                flex-direction: row; 
+                overflow-x: auto; 
+                padding: 0.5rem; 
+                gap: 0.5rem;
+                border-bottom: 1px solid var(--border-light);
+                scrollbar-width: none; /* Firefox */
+            }
+            .tools-nav::-webkit-scrollbar { display: none; } /* Chrome/Safari */
+            .tools-nav-btn { 
+                flex-shrink: 0; 
+                padding: 0.75rem 1rem; 
+                font-size: 0.8rem;
+                white-space: nowrap;
+            }
+        }
+    
     </style>
 </head>
 <body>
@@ -1117,6 +1373,63 @@
 
     <!-- Main Dashboard -->
     <div id="dashboardView" class="dashboard-view">
+        <div class="mobile-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <i class="fas fa-robot" style="font-size: 1.5rem;"></i>
+                <h2>TICO IA</h2>
+            </div>
+            <button class="hamburger-menu" id="hamburgerBtn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button        </main>
+
+        <!-- Modal de Novo Evento -->
+        <div id="eventModal" class="auth-view" style="display: none; position: fixed; inset: 0; z-index: 10000; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);">
+            <div class="auth-card glass" style="max-width: 450px; padding: 2rem;">
+                <div class="auth-header">
+                    <i class="fas fa-calendar-plus"></i>
+                    <h1>Novo Agendamento</h1>
+                    <p>Configure um novo evento para seus agentes.</p>
+                </div>
+                <form id="eventForm">
+                    <div class="input-group">
+                        <label>Título do Evento</label>
+                        <input type="text" id="eventTitle" class="input-field" placeholder="Ex: Reunião de Planejamento" required>
+                    </div>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div class="input-group">
+                            <label>Data</label>
+                            <input type="date" id="eventDate" class="input-field" required>
+                        </div>
+                        <div class="input-group">
+                            <label>Horário</label>
+                            <input type="time" id="eventTime" class="input-field" required>
+                        </div>
+                    </div>
+                    <div class="input-group">
+                        <label>Tipo de Evento</label>
+                        <select id="eventType" class="input-field">
+                            <option value="info">Informativo (Azul)</option>
+                            <option value="success">Sucesso (Verde)</option>
+                            <option value="warning">Atenção (Laranja)</option>
+                            <option value="error">Crítico (Vermelho)</option>
+                        </select>
+                    </div>
+                    <div class="input-group">
+                        <label>Descrição</label>
+                        <textarea id="eventDesc" class="input-field" style="min-height: 80px; resize: none;" placeholder="Detalhes do evento..."></textarea>
+                    </div>
+                    <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                        <button type="button" class="btn btn-outline" style="flex: 1;" onclick="TicoApp.closeEventModal()">Cancelar</button>
+                        <button type="submit" class="btn btn-primary" style="flex: 1;">Salvar Evento</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="sidebarOverlay" class="sidebar-overlay"></div>
+    
         <div class="sidebar" id="sidebar">
             <div class="sidebar-header">
                 <i class="fas fa-robot" style="font-size: clamp(1rem, 2vw, 1.5rem);"></i>
@@ -1129,6 +1442,20 @@
                 <a class="nav-link" data-view="users"><i class="fas fa-user-shield"></i> <span>Usuários</span></a>
                 <a class="nav-link" data-view="logs"><i class="fas fa-history"></i> <span>Logs</span></a>
                 <a class="nav-link" data-view="chat-logs"><i class="fas fa-comments"></i> <span>Auditoria</span></a>
+                
+                
+                <a class="nav-link" data-view="calendar">
+                    <i class="fas fa-calendar-alt"></i>
+                    <span>Calendário</span>
+                </a>
+                <a class="nav-link" data-view="reports">
+                    <i class="fas fa-chart-line"></i>
+                    <span>Relatórios</span>
+                </a>
+                <a class="nav-link" data-view="tools">
+                    <i class="fas fa-tools"></i>
+                    <span>Ferramentas</span>
+                </a>
                 <a class="nav-link" data-view="settings"><i class="fas fa-cog"></i> <span>Config</span></a>
             </nav>
             <div style="padding: clamp(0.75rem, 1.5vw, 1.5rem); border-top: 1px solid var(--border-light);">
@@ -1256,7 +1583,20 @@
                                 <span class="status-badge" style="background: var(--bg-tertiary); color: var(--text-secondary);" id="activeAgentTag">SUPERVISOR</span>
                             </div>
                         </div>
-                        <div class="chat-messages" id="mainChatMessages">
+                        
+                    <div class="api-config-bar">
+                        <div style="display: flex; align-items: center; gap: 0.5rem;">
+                            <div class="api-status" id="apiStatus"></div>
+                            <span id="apiStatusText">API Desconectada</span>
+                        </div>
+                        <div style="flex: 1; display: flex; gap: 0.5rem; align-items: center;">
+                            <input type="password" class="input-field" id="chatApiKey" placeholder="Insira sua API Key do Google Gemini" style="padding: 0.4rem 0.75rem; font-size: 0.75rem; max-width: 300px;">
+                            <button class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.7rem;" onclick="TicoApp.connectExternalApi()">Conectar</button>
+                            <button class="btn btn-outline" style="padding: 0.4rem 1rem; font-size: 0.7rem;" onclick="TicoApp.exportChatConfig()">Exportar API</button>
+                        </div>
+                    </div>
+    
+                    <div class="chat-messages" id="mainChatMessages">
                             <div class="message bot">
                                 <span class="supervisor-tag">SUPERVISOR</span> Olá! Como posso ajudar você hoje?
                                 <span class="message-info">Agora</span>
@@ -1332,6 +1672,307 @@
             </div>
 
             <!-- Settings Content (Enhanced) -->
+            
+            
+            <!-- Calendar Content -->
+            <div id="view-calendar" style="display: none;">
+                <header class="top-bar">
+                    <div>
+                        <h1>Calendário de Operações</h1>
+                        <p>Agendamentos, prazos e eventos dos agentes de IA.</p>
+                    </div>
+                    <div style="display: flex; gap: 1rem; align-items: center;">
+                        <div class="input-group" style="margin-bottom: 0; width: 250px;">
+                            <i class="fas fa-search" style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: var(--text-tertiary);"></i>
+                            <input type="text" class="input-field" style="padding-left: 2.5rem;" placeholder="Pesquisar eventos..." id="calendarSearch">
+                        </div>
+                        <button class="btn btn-primary" onclick="TicoApp.addEvent()"><i class="fas fa-plus"></i> Novo Evento</button>
+                    </div>
+                </header>
+
+                <div class="calendar-layout" style="display: grid; grid-template-columns: 1fr 350px; gap: 2rem;">
+                    <div class="glass" style="padding: 1.5rem; border-radius: var(--radius-lg);">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                            <div style="display: flex; align-items: center; gap: 1rem;">
+                                <h2 id="currentMonth" style="font-size: 1.5rem; font-weight: 800; letter-spacing: -0.5px;">Janeiro 2026</h2>
+                                <div class="status-badge info" style="font-size: 0.6rem;">Hoje: 06 Jan</div>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; background: var(--bg-secondary); padding: 4px; border-radius: 10px; border: 1px solid var(--border-light);">
+                                <button class="btn btn-outline" style="padding: 0.5rem; border: none; background: transparent;" onclick="TicoApp.prevMonth()"><i class="fas fa-chevron-left"></i></button>
+                                <button class="btn btn-primary" style="padding: 0.5rem 1rem; font-size: 0.75rem;" onclick="TicoApp.state.calendar.currentDate = new Date(); TicoApp.renderCalendar();">Hoje</button>
+                                <button class="btn btn-outline" style="padding: 0.5rem; border: none; background: transparent;" onclick="TicoApp.nextMonth()"><i class="fas fa-chevron-right"></i></button>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 12px; text-align: center;">
+                            <div style="font-weight: 800; color: var(--text-tertiary); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 10px;">Dom</div>
+                            <div style="font-weight: 800; color: var(--text-tertiary); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 10px;">Seg</div>
+                            <div style="font-weight: 800; color: var(--text-tertiary); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 10px;">Ter</div>
+                            <div style="font-weight: 800; color: var(--text-tertiary); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 10px;">Qua</div>
+                            <div style="font-weight: 800; color: var(--text-tertiary); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 10px;">Qui</div>
+                            <div style="font-weight: 800; color: var(--text-tertiary); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 10px;">Sex</div>
+                            <div style="font-weight: 800; color: var(--text-tertiary); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1px; padding-bottom: 10px;">Sáb</div>
+                            
+                            <div id="calendarGrid" style="display: contents;">
+                                <!-- Gerado via JS -->
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="glass" style="padding: 1.5rem; display: flex; flex-direction: column; gap: 1.5rem;">
+                        <h3>Tarefas do Dia</h3>
+                        <div id="dailyTasks" style="display: flex; flex-direction: column; gap: 1rem;">
+                            <!-- Gerado via JS -->
+                            <div class="tool-card" style="border-left: 4px solid var(--info);">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <span style="font-weight: bold; font-size: 0.9rem;">Reunião IA</span>
+                                    <span style="font-size: 0.7rem; color: var(--text-tertiary);">09:00</span>
+                                </div>
+                                <p style="font-size: 0.8rem; color: var(--text-secondary);">Alinhamento semanal de performance.</p>
+                            </div>
+                            <div class="tool-card" style="border-left: 4px solid var(--success);">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                                    <span style="font-weight: bold; font-size: 0.9rem;">Backup Geral</span>
+                                    <span style="font-size: 0.7rem; color: var(--text-tertiary);">23:00</span>
+                                </div>
+                                <p style="font-size: 0.8rem; color: var(--text-secondary);">Rotina automática de segurança.</p>
+                            </div>
+                        </div>
+                        
+                        <hr style="border: 0; border-top: 1px solid var(--border-light);">
+                        
+                        <h3>Próximos Eventos</h3>
+                        <div id="upcomingEvents" style="display: flex; flex-direction: column; gap: 0.75rem;">
+                            <div style="display: flex; gap: 1rem; align-items: center;">
+                                <div style="width: 40px; height: 40px; background: var(--bg-tertiary); border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.7rem;">
+                                    <span style="font-weight: bold;">12</span>
+                                    <span>JAN</span>
+                                </div>
+                                <div>
+                                    <div style="font-weight: 600; font-size: 0.85rem;">Treinamento LLM</div>
+                                    <div style="font-size: 0.75rem; color: var(--text-tertiary);">Setor Engenharia</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            
+            <!-- Reports Content -->
+            <div id="view-reports" style="display: none;">
+                <header class="top-bar">
+                    <div>
+                        <h1>Relatórios e Analytics</h1>
+                        <p>Exporte dados detalhados da sua operação.</p>
+                    </div>
+                </header>
+                <div class="glass" style="padding: 1.5rem; margin-bottom: 2rem; display: flex; gap: 1rem; flex-wrap: wrap; align-items: center;">
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="font-size: 0.8rem; color: var(--text-tertiary); display: block; margin-bottom: 0.5rem;">Período do Relatório</label>
+                        <select class="input-field" id="reportPeriod">
+                            <option value="7d">Últimos 7 dias</option>
+                            <option value="30d">Últimos 30 dias</option>
+                            <option value="90d">Últimos 90 dias</option>
+                            <option value="custom">Personalizado</option>
+                        </select>
+                    </div>
+                    <div style="flex: 1; min-width: 200px;">
+                        <label style="font-size: 0.8rem; color: var(--text-tertiary); display: block; margin-bottom: 0.5rem;">Agente Específico</label>
+                        <select class="input-field" id="reportAgent">
+                            <option value="all">Todos os Agentes</option>
+                            <option value="rh">Recrutador IA</option>
+                            <option value="eng">Analista de Projetos</option>
+                            <option value="sup">Gestor de Estoque</option>
+                        </select>
+                    </div>
+                    <div style="display: flex; align-items: flex-end; height: 100%;">
+                        <button class="btn btn-primary" onclick="TicoApp.refreshReports()"><i class="fas fa-sync"></i> Atualizar Dados</button>
+                    </div>
+                </div>
+
+                <div class="tool-grid">
+                    <div class="glass" style="padding: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div style="font-size: 2rem; color: var(--text-primary);"><i class="fas fa-chart-bar"></i></div>
+                            <div class="status-badge success">Ativo</div>
+                        </div>
+                        <h3>Performance de Agentes</h3>
+                        <p style="color: var(--text-tertiary); font-size: 0.9rem;">Relatório completo de tempo de resposta, precisão e volume por agente.</p>
+                        <div style="height: 150px; margin: 1rem 0; background: var(--glass-bg); border-radius: 8px; display: flex; align-items: flex-end; gap: 8px; padding: 10px;">
+                            <div style="flex: 1; background: var(--info); height: 60%; border-radius: 4px 4px 0 0;"></div>
+                            <div style="flex: 1; background: var(--info); height: 85%; border-radius: 4px 4px 0 0;"></div>
+                            <div style="flex: 1; background: var(--info); height: 45%; border-radius: 4px 4px 0 0;"></div>
+                            <div style="flex: 1; background: var(--info); height: 95%; border-radius: 4px 4px 0 0;"></div>
+                            <div style="flex: 1; background: var(--info); height: 70%; border-radius: 4px 4px 0 0;"></div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-primary" style="flex: 1;" onclick="TicoApp.exportReport('performance', 'pdf')"><i class="fas fa-file-pdf"></i> PDF</button>
+                            <button class="btn btn-outline" style="flex: 1;" onclick="TicoApp.exportReport('performance', 'csv')"><i class="fas fa-file-csv"></i> CSV</button>
+                        </div>
+                    </div>
+                    <div class="glass" style="padding: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div style="font-size: 2rem; color: var(--text-primary);"><i class="fas fa-wallet"></i></div>
+                            <div class="status-badge info">Atualizado</div>
+                        </div>
+                        <h3>Economia e ROI</h3>
+                        <p style="color: var(--text-tertiary); font-size: 0.9rem;">Análise financeira de economia gerada pela automação de processos.</p>
+                        <div style="height: 150px; margin: 1rem 0; background: var(--glass-bg); border-radius: 8px; padding: 15px; display: flex; flex-direction: column; justify-content: center; gap: 10px;">
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem;"><span>Economia Total</span><span style="color: var(--success); font-weight: bold;">R$ 42.500</span></div>
+                            <div style="width: 100%; height: 8px; background: var(--bg-tertiary); border-radius: 4px; overflow: hidden;"><div style="width: 75%; height: 100%; background: var(--success);"></div></div>
+                            <div style="display: flex; justify-content: space-between; font-size: 0.8rem;"><span>Meta Mensal</span><span>R$ 50.000</span></div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-primary" style="flex: 1;" onclick="TicoApp.exportReport('roi', 'pdf')"><i class="fas fa-file-pdf"></i> PDF</button>
+                            <button class="btn btn-outline" style="flex: 1;" onclick="TicoApp.exportReport('roi', 'csv')"><i class="fas fa-file-csv"></i> CSV</button>
+                        </div>
+                    </div>
+                    <div class="glass" style="padding: 2rem; display: flex; flex-direction: column; gap: 1rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: flex-start;">
+                            <div style="font-size: 2rem; color: var(--text-primary);"><i class="fas fa-user-shield"></i></div>
+                            <div class="status-badge warning">Auditoria</div>
+                        </div>
+                        <h3>Auditoria de Segurança</h3>
+                        <p style="color: var(--text-tertiary); font-size: 0.9rem;">Logs de acesso, alterações de permissões e conformidade de dados.</p>
+                        <div style="height: 150px; margin: 1rem 0; background: var(--glass-bg); border-radius: 8px; padding: 10px; overflow-y: auto; font-family: monospace; font-size: 0.7rem;">
+                            <div style="margin-bottom: 4px; color: var(--success);">[OK] Login Admin - 10:45</div>
+                            <div style="margin-bottom: 4px; color: var(--warning);">[!] Tentativa Falha - 11:20</div>
+                            <div style="margin-bottom: 4px; color: var(--info);">[i] Backup Iniciado - 12:00</div>
+                            <div style="margin-bottom: 4px; color: var(--success);">[OK] API Key Gerada - 14:15</div>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem;">
+                            <button class="btn btn-primary" style="flex: 1;" onclick="TicoApp.exportReport('security', 'pdf')"><i class="fas fa-file-pdf"></i> PDF</button>
+                            <button class="btn btn-outline" style="flex: 1;" onclick="TicoApp.exportReport('security', 'csv')"><i class="fas fa-file-csv"></i> CSV</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+    
+            <!-- Tools Content -->
+            <div id="view-tools" style="display: none;">
+                <header class="top-bar">
+                    <div>
+                        <h1>Central de Ferramentas</h1>
+                        <p>Gerencie infraestrutura, automações e treinamento de IA.</p>
+                    </div>
+                </header>
+
+                <div class="tools-layout">
+                    <aside class="tools-nav">
+                        <button class="tools-nav-btn active" data-section="alertsSection">
+                            <i class="fas fa-bell"></i> Alertas de Sistema
+                        </button>
+                        <button class="tools-nav-btn" data-section="dbSection">
+                            <i class="fas fa-database"></i> Banco de Dados
+                        </button>
+                        <button class="tools-nav-btn" data-section="endpointsSection">
+                            <i class="fas fa-plug"></i> Endpoints API
+                        </button>
+                        <button class="tools-nav-btn" data-section="tasksSection">
+                            <i class="fas fa-tasks"></i> Tarefas Agendadas
+                        </button>
+                        <button class="tools-nav-btn" data-section="trainingSection">
+                            <i class="fas fa-brain"></i> Treinamento de IA
+                        </button>
+                    </aside>
+
+                    <main class="tools-content glass">
+                        <!-- Alertas -->
+                        <div id="alertsSection" class="tool-section active">
+                            <h2 style="margin-bottom: 1.5rem;">Alertas e Notificações</h2>
+                            <div class="tool-grid">
+                                <div class="tool-card">
+                                    <h4><i class="fas fa-exclamation-triangle" style="color: var(--warning);"></i> Performance</h4>
+                                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Agente 'Recrutador IA' operando com latência acima do normal (1.5s).</p>
+                                    <span style="font-size: 0.7rem; color: var(--text-tertiary);">Há 5 minutos</span>
+                                </div>
+                                <div class="tool-card">
+                                    <h4><i class="fas fa-check-circle" style="color: var(--success);"></i> Backup</h4>
+                                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Backup diário concluído com sucesso. 4.2GB processados.</p>
+                                    <span style="font-size: 0.7rem; color: var(--text-tertiary);">Há 2 horas</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Banco de Dados -->
+                        <div id="dbSection" class="tool-section">
+                            <h2 style="margin-bottom: 1.5rem;">Infraestrutura de Dados</h2>
+                            <div class="tool-grid">
+                                <div class="tool-card">
+                                    <h4><i class="fas fa-server"></i> PostgreSQL Principal</h4>
+                                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Status: Online | Conexões: 42/100</p>
+                                    <button class="btn btn-outline" style="margin-top: 1rem; width: 100%; font-size: 0.75rem;">Gerenciar Tabelas</button>
+                                </div>
+                                <div class="tool-card">
+                                    <h4><i class="fas fa-bolt"></i> Redis Cache</h4>
+                                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Hit Rate: 94.2% | Memória: 512MB/2GB</p>
+                                    <button class="btn btn-outline" style="margin-top: 1rem; width: 100%; font-size: 0.75rem;">Limpar Cache</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Endpoints -->
+                        <div id="endpointsSection" class="tool-section">
+                            <h2 style="margin-bottom: 1.5rem;">Endpoints de Integração</h2>
+                            <div class="table-responsive">
+                                <table>
+                                    <thead>
+                                        <tr>
+                                            <th>Método</th>
+                                            <th>Endpoint</th>
+                                            <th>Status</th>
+                                            <th>Ação</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td><span class="status-badge status-online" style="background: rgba(59, 130, 246, 0.1); color: #3b82f6;">POST</span></td>
+                                            <td><code>/api/v1/agent/chat</code></td>
+                                            <td><span class="status-badge status-online">Ativo</span></td>
+                                            <td><i class="fas fa-copy" style="cursor: pointer;"></i></td>
+                                        </tr>
+                                        <tr>
+                                            <td><span class="status-badge status-online" style="background: rgba(16, 185, 129, 0.1); color: #10b981;">GET</span></td>
+                                            <td><code>/api/v1/logs/system</code></td>
+                                            <td><span class="status-badge status-online">Ativo</span></td>
+                                            <td><i class="fas fa-copy" style="cursor: pointer;"></i></td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <!-- Tarefas -->
+                        <div id="tasksSection" class="tool-section">
+                            <h2 style="margin-bottom: 1.5rem;">Tarefas Agendadas (Cron)</h2>
+                            <div class="tool-grid">
+                                <div class="tool-card">
+                                    <h4><i class="fas fa-clock"></i> Relatório Semanal</h4>
+                                    <p style="font-size: 0.85rem; color: var(--text-secondary);">Próxima execução: Segunda-feira, 08:00</p>
+                                    <div style="display: flex; gap: 0.5rem; margin-top: 1rem;">
+                                        <button class="btn btn-primary" style="flex: 1; font-size: 0.7rem;">Executar Agora</button>
+                                        <button class="btn btn-outline" style="flex: 1; font-size: 0.7rem;">Editar</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Treinamento -->
+                        <div id="trainingSection" class="tool-section">
+                            <h2 style="margin-bottom: 1.5rem;">Treinamento de Modelos</h2>
+                            <div class="tool-card" style="margin-bottom: 1.5rem;">
+                                <h4>Dataset Atual: <code>knowledge_base_v2.json</code></h4>
+                                <div style="height: 8px; background: var(--bg-tertiary); border-radius: 4px; margin: 1rem 0; overflow: hidden;">
+                                    <div style="width: 65%; height: 100%; background: var(--text-primary);"></div>
+                                </div>
+                                <p style="font-size: 0.85rem; color: var(--text-secondary);">Progresso do Fine-tuning: 65% (Epoch 3/5)</p>
+                            </div>
+                            <button class="btn btn-primary"><i class="fas fa-plus"></i> Novo Treinamento</button>
+                        </div>
+                    </main>
+                </div>
+            </div>
+    
             <div id="view-settings" class="settings-view" style="display: none;">
                 <header class="top-bar">
                     <div><h1>Configurações</h1><p>Gerencie sua conta, segurança e preferências do sistema.</p></div>
@@ -1590,7 +2231,15 @@
                     agentStatus: [8, 3, 1]
                 },
                 validations: { cpf: false, password: false },
-                charts: {}
+                charts: {},
+                calendar: {
+                    currentDate: new Date(),
+                    events: JSON.parse(localStorage.getItem('tico_events')) || [
+                        { id: 1, title: 'Reunião IA', date: '2026-01-04', time: '09:00', type: 'info', desc: 'Alinhamento semanal de performance.' },
+                        { id: 2, title: 'Backup Geral', date: '2026-01-06', time: '23:00', type: 'success', desc: 'Rotina automática de segurança.' },
+                        { id: 3, title: 'Treinamento LLM', date: '2026-01-12', time: '14:00', type: 'warning', desc: 'Setor Engenharia' }
+                    ]
+                }
             },
 
             init() {
@@ -1601,6 +2250,8 @@
                     this.cacheDOM();
                     this.bindEvents();
                     this.checkAuth();
+                    this.renderCalendar();
+                    this.loadApiKey();
                     this.hideLoading();
                     this.handleResize();
                     window.addEventListener('resize', () => this.handleResize());
@@ -1608,8 +2259,237 @@
                 } catch (e) { console.error(e); this.hideLoading(); }
             },
 
+            
+            toggleSidebar() {
+                const isOpen = this.dom.sidebar.classList.toggle('open');
+                this.dom.hamburgerBtn.classList.toggle('open');
+                this.dom.sidebarOverlay.classList.toggle('active');
+                document.body.style.overflow = isOpen ? 'hidden' : 'auto';
+            },
+
+            closeSidebar() {
+                this.dom.sidebar.classList.remove('open');
+                this.dom.hamburgerBtn.classList.remove('open');
+                this.dom.sidebarOverlay.classList.remove('active');
+                document.body.style.overflow = 'auto';
+            },
+
+            loadApiKey() {
+                // Carregar API key do localStorage ao iniciar
+                let savedApiKey = localStorage.getItem('gemini_api_key');
+                
+                // Se não houver API key salva, usar a padrão fornecida
+                if (!savedApiKey) {
+                    savedApiKey = 'AIzaSyBRYMAWBWxw9_qfNSQAX3clunMBo_zRYt8';
+                    localStorage.setItem('gemini_api_key', savedApiKey);
+                }
+                
+                if (savedApiKey && this.dom.chatApiKey) {
+                    this.dom.chatApiKey.value = savedApiKey;
+                    this.dom.apiStatus.classList.add('connected');
+                    this.dom.apiStatusText.innerText = 'API Conectada (Google Gemini)';
+                }
+            },
+
+            switchToolSection(sectionId) {
+                document.querySelectorAll('.tool-section').forEach(s => s.classList.remove('active'));
+                document.querySelectorAll('.tools-nav-btn').forEach(b => b.classList.remove('active'));
+                
+                const section = document.getElementById(sectionId);
+                const btn = document.querySelector(`[data-section="${sectionId}"]`);
+                
+                if (section) section.classList.add('active');
+                if (btn) btn.classList.add('active');
+            },
+
+            connectExternalApi() {
+                const key = this.dom.chatApiKey.value;
+                if (!key) {
+                    this.showNotification('Por favor, insira uma API Key válida.', 'error');
+                    return;
+                }
+                
+                // Salvar API key no localStorage
+                localStorage.setItem('gemini_api_key', key);
+                
+                // Atualizar status visual
+                this.dom.apiStatus.classList.add('connected');
+                this.dom.apiStatusText.innerText = 'API Conectada (Google Gemini)';
+                this.showNotification('Conexão com Google Gemini estabelecida com sucesso!', 'success');
+            },
+
+            exportChatConfig() {
+                const config = {
+                    agent: this.state.activeChat,
+                    timestamp: new Date().toISOString(),
+                    endpoint: 'https://api.ticoia.com/v1/chat',
+                    status: 'active'
+                };
+                const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `tico_api_config_${this.state.activeChat}.json`;
+                a.click();
+                this.showNotification('Configuração da API exportada!', 'info');
+            },
+    
+            
+            exportReport(type, format) {
+                this.showNotification(`Gerando relatório de ${type.toUpperCase()} em ${format.toUpperCase()}...`, 'info');
+                setTimeout(() => {
+                    const content = `Relatório de ${type}\nGerado em: ${new Date().toLocaleString()}\nStatus: Finalizado`;
+                    const blob = new Blob([content], { type: format === 'pdf' ? 'application/pdf' : 'text/csv' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `relatorio_${type}_${new Date().getTime()}.${format}`;
+                    a.click();
+                    this.showNotification('Relatório baixado com sucesso!', 'success');
+                }, 1500);
+            },
+
+            refreshReports() {
+                this.showNotification('Atualizando dados dos relatórios...', 'info');
+                // Simulação de atualização de dados
+                setTimeout(() => {
+                    this.showNotification('Dados atualizados com sucesso!', 'success');
+                }, 1000);
+            },
+
+            renderCalendar() {
+                const grid = document.getElementById('calendarGrid');
+                const monthDisplay = document.getElementById('currentMonth');
+                if (!grid || !monthDisplay) return;
+
+                const date = this.state.calendar.currentDate;
+                const year = date.getFullYear();
+                const month = date.getMonth();
+                
+                const firstDay = new Date(year, month, 1).getDay();
+                const daysInMonth = new Date(year, month + 1, 0).getDate();
+                const prevDaysInMonth = new Date(year, month, 0).getDate();
+
+                const monthNames = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
+                monthDisplay.innerText = `${monthNames[month]} ${year}`;
+
+                let html = '';
+                
+                // Dias do mês anterior
+                for (let i = firstDay - 1; i >= 0; i--) {
+                    html += `<div class="glass" style="height: 80px; padding: 5px; opacity: 0.3; font-size: 0.8rem;">${prevDaysInMonth - i}</div>`;
+                }
+
+                // Dias do mês atual
+                for (let i = 1; i <= daysInMonth; i++) {
+                    const fullDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(i).padStart(2, '0')}`;
+                    const dayEvents = this.state.calendar.events.filter(e => e.date === fullDate);
+                    const isToday = i === new Date().getDate() && month === new Date().getMonth() && year === new Date().getFullYear();
+                    
+                    html += `
+                        <div class="glass calendar-day" style="min-height: 100px; padding: 10px; position: relative; transition: all 0.3s ease; cursor: pointer; ${isToday ? 'border: 2px solid var(--text-primary); background: var(--glass-bg);' : ''}" onclick="TicoApp.selectDate('${fullDate}')">
+                            <span style="font-size: 0.9rem; font-weight: ${isToday ? '900' : '600'}; color: ${isToday ? 'var(--text-primary)' : 'var(--text-secondary)'}">${i}</span>
+                            <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 8px;">
+                                ${dayEvents.map(e => `
+                                    <div style="font-size: 0.6rem; background: var(--${e.type}); color: white; padding: 3px 6px; border-radius: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: flex; align-items: center; gap: 4px;">
+                                        <div style="width: 4px; height: 4px; background: white; border-radius: 50%;"></div>
+                                        ${e.title}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+
+                grid.innerHTML = html;
+                this.renderDailyTasks();
+            },
+
+            renderDailyTasks() {
+                const container = document.getElementById('dailyTasks');
+                if (!container) return;
+
+                const today = new Date().toISOString().split('T')[0];
+                const tasks = this.state.calendar.events.filter(e => e.date === today);
+
+                if (tasks.length === 0) {
+                    container.innerHTML = '<p style="font-size: 0.85rem; color: var(--text-tertiary); text-align: center; padding: 1rem;">Nenhuma tarefa para hoje.</p>';
+                    return;
+                }
+
+                container.innerHTML = tasks.map(t => `
+                    <div class="tool-card" style="border-left: 4px solid var(--${t.type});">
+                        <div style="display: flex; justify-content: space-between; margin-bottom: 0.5rem;">
+                            <span style="font-weight: bold; font-size: 0.9rem;">${t.title}</span>
+                            <span style="font-size: 0.7rem; color: var(--text-tertiary);">${t.time}</span>
+                        </div>
+                        <p style="font-size: 0.8rem; color: var(--text-secondary);">${t.desc}</p>
+                    </div>
+                `).join('');
+            },
+
+            prevMonth() {
+                this.state.calendar.currentDate.setMonth(this.state.calendar.currentDate.getMonth() - 1);
+                this.renderCalendar();
+            },
+
+            nextMonth() {
+                this.state.calendar.currentDate.setMonth(this.state.calendar.currentDate.getMonth() + 1);
+                this.renderCalendar();
+            },
+
+            addEvent() {
+                const modal = document.getElementById('eventModal');
+                if (modal) modal.style.display = 'flex';
+                // Define data padrão como hoje
+                document.getElementById('eventDate').value = new Date().toISOString().split('T')[0];
+            },
+
+            selectDate(date) {
+                const modal = document.getElementById('eventModal');
+                if (modal) {
+                    modal.style.display = 'flex';
+                    document.getElementById('eventDate').value = date;
+                }
+            },
+
+            closeEventModal() {
+                const modal = document.getElementById('eventModal');
+                if (modal) modal.style.display = 'none';
+                document.getElementById('eventForm').reset();
+            },
+
+            handleEventSubmit(e) {
+                e.preventDefault();
+                const title = document.getElementById('eventTitle').value;
+                const date = document.getElementById('eventDate').value;
+                const time = document.getElementById('eventTime').value;
+                const type = document.getElementById('eventType').value;
+                const desc = document.getElementById('eventDesc').value;
+
+                const newEvent = {
+                    id: Date.now(),
+                    title,
+                    date,
+                    time,
+                    type,
+                    desc
+                };
+
+                this.state.calendar.events.push(newEvent);
+                localStorage.setItem('tico_events', JSON.stringify(this.state.calendar.events));
+                
+                this.renderCalendar();
+                this.closeEventModal();
+                this.showNotification('Evento agendado com sucesso!', 'success');
+            },
+    
             handleResize() {
                 const isMobile = window.innerWidth <= 1024;
+                if (!isMobile) {
+                    this.closeSidebar();
+                }
+    
                 if (isMobile && this.dom.sidebar && this.dom.sidebar.classList.contains('open')) {
                     document.body.style.overflow = 'hidden';
                 } else {
@@ -1653,6 +2533,8 @@
                     resetView: document.getElementById('resetView'),
                     dashboardView: document.getElementById('dashboardView'),
                     sidebar: document.getElementById('sidebar'),
+                    hamburgerBtn: document.getElementById('hamburgerBtn'),
+                    sidebarOverlay: document.getElementById('sidebarOverlay'),
                     loginForm: document.getElementById('loginForm'),
                     registerForm: document.getElementById('registerForm'),
                     resetForm: document.getElementById('resetForm'),
@@ -1678,7 +2560,10 @@
                     avatarInput: document.getElementById('avatarInput'),
                     exportCsvBtn: document.getElementById('exportCsvBtn'),
                     userForm: document.getElementById('userForm'),
-                    agentForm: document.getElementById('agentForm')
+                    agentForm: document.getElementById('agentForm'),
+                    chatApiKey: document.getElementById('chatApiKey'),
+                    apiStatus: document.getElementById('apiStatus'),
+                    apiStatusText: document.getElementById('apiStatusText')
                 };
             },
 
@@ -1698,6 +2583,26 @@
                 });
 
                 this.dom.toRegister?.addEventListener('click', (e) => { e.preventDefault(); this.showRegister(); });
+                
+                document.querySelectorAll('.tools-nav-btn').forEach(btn => {
+                    btn.addEventListener('click', (e) => {
+                        const section = e.currentTarget.getAttribute('data-section');
+                        this.switchToolSection(section);
+                    });
+                });
+    
+                this.dom.hamburgerBtn?.addEventListener('click', () => this.toggleSidebar());
+                this.dom.sidebarOverlay?.addEventListener('click', () => this.closeSidebar());
+                
+                // Fechar sidebar ao clicar em um link no mobile
+                document.querySelectorAll('.nav-link').forEach(link => {
+                    link.addEventListener('click', () => {
+                        if (window.innerWidth <= 1024) {
+                            this.closeSidebar();
+                        }
+                    });
+                });
+    
                 this.dom.toReset?.addEventListener('click', (e) => { e.preventDefault(); this.showReset(); });
                 this.dom.toLoginFromReg?.addEventListener('click', (e) => { e.preventDefault(); this.showAuth(); });
                 this.dom.toLoginFromReset?.addEventListener('click', (e) => { e.preventDefault(); this.showAuth(); });
@@ -1712,7 +2617,22 @@
                 this.dom.exportCsvBtn?.addEventListener('click', () => this.exportToCsv());
                 this.dom.userForm?.addEventListener('submit', (e) => { e.preventDefault(); this.handleUserSubmit(); });
                 this.dom.agentForm?.addEventListener('submit', (e) => { e.preventDefault(); this.handleAgentSubmit(); });
+                document.getElementById('eventForm')?.addEventListener('submit', (e) => this.handleEventSubmit(e));
+
+
+    
                 this.dom.verifyBtn?.addEventListener('click', () => this.handleVerifyCode());
+                
+                document.getElementById('calendarSearch')?.addEventListener('input', (e) => {
+                    const term = e.target.value.toLowerCase();
+                    const filtered = this.state.calendar.events.filter(ev => 
+                        ev.title.toLowerCase().includes(term) || ev.desc.toLowerCase().includes(term)
+                    );
+                    // Aqui poderíamos renderizar uma lista de resultados ou destacar no grid
+                    if (term.length > 2) {
+                        this.showNotification(`Encontrados ${filtered.length} eventos para "${term}"`, 'info');
+                    }
+                });
 
                 this.dom.regCpf?.addEventListener('input', (e) => this.handleCpfInput(e));
                 document.getElementById('regPassword')?.addEventListener('input', (e) => this.validatePassword(e.target.value));
@@ -1795,7 +2715,7 @@
                 const activeLink = document.querySelector(`.nav-link[data-view="${view}"]`);
                 if (activeLink) activeLink.classList.add('active');
                 
-                ['main', 'chat', 'agents', 'users', 'logs', 'chat-logs', 'settings'].forEach(v => {
+                ['main', 'chat', 'agents', 'users', 'logs', 'chat-logs', 'settings', 'tools', 'calendar', 'reports'].forEach(v => {
                     const el = document.getElementById(`view-${v}`);
                     if (el) el.style.display = v === view ? 'block' : 'none';
                 });
@@ -1845,23 +2765,63 @@
                 }
             },
 
-            handleMainChatMessage() {
+            async handleMainChatMessage() {
                 const text = this.dom.mainChatInput.value.trim();
                 if (!text) return;
+                
+                // Tentar obter API key do campo ou localStorage
+                let apiKey = this.dom.chatApiKey.value || localStorage.getItem('gemini_api_key');
+                
                 this.addMainMessage('user', text);
                 this.addChatLog(this.state.activeChat, text);
                 this.dom.mainChatInput.value = '';
                 
-                if (this.state.activeChat === 'supervisor') {
-                    setTimeout(() => {
-                        const targetAgent = this.routeMessage(text);
-                        if (targetAgent) {
-                            this.addMainMessage('bot', `<span class="supervisor-tag">SUPERVISOR</span> Identifiquei que sua solicitação é sobre <strong>${targetAgent.sector}</strong>. Vou encaminhar você para o <strong>${targetAgent.name}</strong>.`);
-                            setTimeout(() => this.selectChat(targetAgent.id), 2000);
-                        } else this.addMainMessage('bot', `<span class="supervisor-tag">SUPERVISOR</span> Não consegui identificar um setor específico. Pode detalhar melhor?`);
-                    }, 1000);
-                } else {
-                    setTimeout(() => this.addMainMessage('bot', `Entendido. Como especialista de ${this.state.agents.find(a => a.id === this.state.activeChat).sector}, estou processando sua solicitação.`), 1000);
+                if (!apiKey) {
+                    this.addMainMessage('bot', `<span style="color: var(--error);"><i class="fas fa-exclamation-triangle"></i> Erro: API Key não configurada. Insira sua chave do Google Gemini no campo acima e clique em Conectar.</span>`);
+                    return;
+                }
+
+                const typingId = 'typing-' + Date.now();
+                this.addMainMessage('bot', `<i class="fas fa-spinner fa-spin"></i> Pensando...`, typingId);
+
+                try {
+                    // Construir o prompt do sistema
+                    const agentName = this.state.agents.find(a => a.id === this.state.activeChat)?.name || 'Assistente IA';
+                    const agentSector = this.state.agents.find(a => a.id === this.state.activeChat)?.sector || 'Geral';
+                    const systemPrompt = `Você é o ${agentName}, um especialista no setor ${agentSector}. Responda de forma profissional e prestativa.`;
+                    
+                    // Usar API do Google Gemini (v1 com gemini-2.5-flash)
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({
+                            contents: [{
+                                parts: [{
+                                    text: `${systemPrompt}\n\nUsuário: ${text}`
+                                }]
+                            }]
+                        })
+                    });
+
+                    const data = await response.json();
+                    const typingEl = document.getElementById(typingId);
+                    if (typingEl) typingEl.remove();
+
+                    if (data.error) {
+                        this.addMainMessage('bot', `<span style="color: var(--error);">Erro na API: ${data.error.message || 'Verifique sua chave de API'}</span>`);
+                    } else if (data.candidates && data.candidates[0] && data.candidates[0].content) {
+                        const aiResponse = data.candidates[0].content.parts[0].text;
+                        this.addMainMessage('bot', aiResponse);
+                        this.addChatLog(this.state.activeChat, aiResponse);
+                    } else {
+                        this.addMainMessage('bot', `<span style="color: var(--error);">Erro: Resposta inválida da API</span>`);
+                    }
+                } catch (error) {
+                    const typingEl = document.getElementById(typingId);
+                    if (typingEl) typingEl.remove();
+                    this.addMainMessage('bot', `<span style="color: var(--error);">Erro de conexão: ${error.message}</span>`);
                 }
             },
 
@@ -1870,12 +2830,29 @@
                 return this.state.agents.find(a => a.keywords.some(k => lower.includes(k)));
             },
 
-            addMainMessage(type, text) {
+            addMainMessage(type, text, id = null) {
                 const div = document.createElement('div');
                 div.className = `message ${type}`;
-                div.innerHTML = `${text} <span class="message-info">Agora</span>`;
+                if (id) div.id = id;
+                
+                // Renderizar Markdown se for mensagem do bot
+                let content = text;
+                if (type === 'bot' && typeof marked !== 'undefined') {
+                    // Configurar marked para quebras de linha simples
+                    marked.setOptions({ breaks: true, gfm: true });
+                    content = marked.parse(text);
+                }
+                
+                div.innerHTML = `<div class="message-content">${content}</div> <span class="message-info">Agora</span>`;
                 this.dom.mainChatMessages.appendChild(div);
-                this.dom.mainChatMessages.scrollTop = this.dom.mainChatMessages.scrollHeight;
+                
+                // Scroll automático suave para a última mensagem
+                setTimeout(() => {
+                    this.dom.mainChatMessages.scrollTo({
+                        top: this.dom.mainChatMessages.scrollHeight,
+                        behavior: 'smooth'
+                    });
+                }, 50);
             },
 
             handleChatFileUpload(input) {
@@ -2512,4 +3489,3 @@
         document.addEventListener('DOMContentLoaded', () => TicoApp.init());
     </script>
 </body>
-</html>
