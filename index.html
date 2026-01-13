@@ -1587,7 +1587,7 @@
                                 <span id="apiStatusText">API Desconectada</span>
                             </div>
                             <div style="flex: 1; display: flex; gap: 0.5rem; align-items: center; flex-wrap: wrap;">
-                                <input type="password" class="input-field" id="chatApiKey" placeholder="Insira sua API Key do Google Gemini" style="padding: 0.4rem 0.75rem; font-size: 0.75rem; max-width: 300px;">
+                                <input type="password" class="input-field" id="chatApiKey" placeholder="Insira sua API Key do Gemini" style="padding: 0.4rem 0.75rem; font-size: 0.75rem; max-width: 300px;">
                                 <button class="btn btn-primary" style="padding: 0.4rem 1rem; font-size: 0.7rem;" onclick="TicoApp.connectExternalApi()">Conectar</button>
                                 <button class="btn btn-outline" style="padding: 0.4rem 1rem; font-size: 0.7rem;" onclick="TicoApp.exportChatConfig()">Exportar API</button>
                             </div>
@@ -2265,16 +2265,17 @@
                 document.body.style.overflow = 'auto';
             },
 
-            loadApiKey() {
-                let savedApiKey = localStorage.getItem('gemini_api_key');
+                                    loadApiKey() {
+                const DEFAULT_KEY = "gen-lang-client-0345062789";
+                let savedKey = localStorage.getItem('gemini_api_key');
                 
-                if (!savedApiKey) {
-                    savedApiKey = 'AIzaSyBRYMAWBWxw9_qfNSQAX3clunMBo_zRYt8';
-                    localStorage.setItem('gemini_api_key', savedApiKey);
+                if (!savedKey) {
+                    savedKey = DEFAULT_KEY;
+                    localStorage.setItem('gemini_api_key', DEFAULT_KEY);
                 }
                 
-                if (savedApiKey && this.dom.chatApiKey) {
-                    this.dom.chatApiKey.value = savedApiKey;
+                if (this.dom.chatApiKey) {
+                    this.dom.chatApiKey.value = savedKey;
                     this.dom.apiStatus.classList.add('connected');
                     this.dom.apiStatusText.innerText = 'API Conectada (Google Gemini)';
                 }
@@ -2291,26 +2292,29 @@
                 if (btn) btn.classList.add('active');
             },
 
-            connectExternalApi() {
-                const key = this.dom.chatApiKey.value;
+                                    connectExternalApi() {
+                const key = this.dom.chatApiKey.value.trim();
                 if (!key) {
-                    this.showNotification('Por favor, insira uma API Key válida.', 'error');
+                    this.showNotification('Por favor, insira uma API Key.', 'error');
                     return;
                 }
-                
                 localStorage.setItem('gemini_api_key', key);
-                
                 this.dom.apiStatus.classList.add('connected');
                 this.dom.apiStatusText.innerText = 'API Conectada (Google Gemini)';
-                this.showNotification('Conexão com Google Gemini estabelecida com sucesso!', 'success');
+                this.showNotification('Nova chave configurada com sucesso!', 'success');
             },
+
+            
+
+            
 
             exportChatConfig() {
                 const config = {
                     agent: this.state.activeChat,
                     timestamp: new Date().toISOString(),
                     endpoint: 'https://api.ticoia.com/v1/chat',
-                    status: 'active'
+                    status: 'active',
+                    api_key_set: !!localStorage.getItem('gemini_api_key')
                 };
                 const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' });
                 const url = URL.createObjectURL(blob);
@@ -2742,40 +2746,33 @@
                 }
             },
 
-            async handleMainChatMessage() {
+                        async handleMainChatMessage() {
                 const text = this.dom.mainChatInput.value.trim();
                 if (!text) return;
                 
-                let apiKey = this.dom.chatApiKey.value || localStorage.getItem('gemini_api_key');
+                const apiKey = this.dom.chatApiKey.value || localStorage.getItem('gemini_api_key');
                 
                 this.addMainMessage('user', text);
                 this.addChatLog(this.state.activeChat, text);
                 this.dom.mainChatInput.value = '';
                 
                 if (!apiKey) {
-                    this.addMainMessage('bot', `<span style="color: var(--error);"><i class="fas fa-exclamation-triangle"></i> Erro: API Key não configurada. Insira sua chave do Google Gemini no campo acima e clique em Conectar.</span>`);
+                    this.addMainMessage('bot', '<span style="color: var(--error);">Erro: API Key não encontrada.</span>');
                     return;
                 }
 
                 const typingId = 'typing-' + Date.now();
-                this.addMainMessage('bot', `<i class="fas fa-spinner fa-spin"></i> Pensando...`, typingId);
+                this.addMainMessage('bot', '<i class="fas fa-spinner fa-spin"></i> Processando...', typingId);
 
                 try {
-                    const agentName = this.state.agents.find(a => a.id === this.state.activeChat)?.name || 'Assistente IA';
-                    const agentSector = this.state.agents.find(a => a.id === this.state.activeChat)?.sector || 'Geral';
-                    const systemPrompt = `Você é o ${agentName}, um especialista no setor ${agentSector}. Responda de forma profissional e prestativa.`;
+                    const agent = this.state.agents.find(a => a.id === this.state.activeChat) || { name: 'Assistente', sector: 'Geral' };
+                    const prompt = `Você é ${agent.name}, especialista em ${agent.sector}. Responda ao usuário: ${text}`;
                     
-                    const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`, {
+                    const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
                         method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
+                        headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({
-                            contents: [{
-                                parts: [{
-                                    text: `${systemPrompt}\n\nUsuário: ${text}`
-                                }]
-                            }]
+                            contents: [{ parts: [{ text: prompt }] }]
                         })
                     });
 
@@ -2784,18 +2781,20 @@
                     if (typingEl) typingEl.remove();
 
                     if (data.error) {
-                        this.addMainMessage('bot', `<span style="color: var(--error);">Erro na API: ${data.error.message || 'Verifique sua chave de API'}</span>`);
-                    } else if (data.candidates && data.candidates[0] && data.candidates[0].content) {
-                        const aiResponse = data.candidates[0].content.parts[0].text;
-                        this.addMainMessage('bot', aiResponse);
-                        this.addChatLog(this.state.activeChat, aiResponse);
-                    } else {
-                        this.addMainMessage('bot', `<span style="color: var(--error);">Erro: Resposta inválida da API</span>`);
+                        throw new Error(data.error.message);
                     }
-                } catch (error) {
+
+                    if (data.candidates && data.candidates[0]?.content?.parts[0]?.text) {
+                        const reply = data.candidates[0].content.parts[0].text;
+                        this.addMainMessage('bot', reply);
+                        this.addChatLog(this.state.activeChat, reply);
+                    } else {
+                        throw new Error('Resposta vazia da API.');
+                    }
+                } catch (err) {
                     const typingEl = document.getElementById(typingId);
                     if (typingEl) typingEl.remove();
-                    this.addMainMessage('bot', `<span style="color: var(--error);">Erro de conexão: ${error.message}</span>`);
+                    this.addMainMessage('bot', `<span style="color: var(--error);"><i class="fas fa-exclamation-circle"></i> Erro Real: ${err.message}</span>`);
                 }
             },
 
